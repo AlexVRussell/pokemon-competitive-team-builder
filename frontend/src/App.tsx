@@ -1,14 +1,34 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import type { Pokemon } from "./types/pokemon"
 
 function App() {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<Pokemon[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  useEffect(() => {
-    fetch("https://pokeapi.co/api/v2/pokemon?limit=10")
-      .then(response => response.json())
-      .then(data => setPokemon(data.results))
-  }, [])
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+
+    setIsLoading(true)
+    setError("")
+
+    fetch(`https://pokeapi.co/api/v2/pokemon/${searchQuery.toLowerCase()}`)
+      .then(response => {
+        if (!response.ok) throw new Error("Pokemon not found")
+        return response.json()
+      })
+      .then(data => {
+        setSearchResults([{ name: data.name, url: data.url }])
+        setSearchQuery("")
+      })
+      .catch(() => {
+        setError("Could not find that Pokemon. Try again!")
+        setSearchResults([])
+      })
+      .finally(() => setIsLoading(false))
+  }
 
   // teamBuilder.tsx 
   const [team, setTeam] = useState<Pokemon[]>([])
@@ -38,10 +58,23 @@ function App() {
     <div>
       <h1>MetaDex - Your personal Competitive Pokemon ChatBot Coach</h1>
 
-      {pokemon.map((poke) => (
+      <form onSubmit={handleSearch}>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search for a Pokemon..."
+        />
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? "Searching..." : "Search"}
+        </button>
+      </form>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {searchResults.map((poke) => (
         <div key={poke.name}>
-          <p key={poke.name}>{poke.name}</p>
-          <p key={poke.url}>{poke.url}</p>
+          <p>{poke.name}</p>
           <button onClick={() => addToTeam(poke)}>Add to Team</button>
         </div>
       ))}
@@ -49,7 +82,7 @@ function App() {
       <h2> Your Team </h2>
       {team.map((poke) => (
         <div key={poke.name}>
-          <p key={poke.name}>{poke.name}</p>
+          <p>{poke.name}</p>
           <button onClick={() => removeFromTeam(poke)}>Remove from Team</button>
         </div>
       ))}
