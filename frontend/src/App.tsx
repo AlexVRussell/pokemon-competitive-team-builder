@@ -1,11 +1,13 @@
 import { useState } from "react"
 import type { Pokemon } from "./types/pokemon"
+import { useTeam } from "./teamSelector"
 
 function App() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<Pokemon[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const { team, addToTeam, removeFromTeam } = useTeam()
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -20,7 +22,7 @@ function App() {
         return response.json()
       })
       .then(data => {
-        setSearchResults([{ name: data.name, url: data.url, types: data.types }])
+        setSearchResults([{ name: data.name, url: data.url, types: data.types || [], abilities: data.abilities || [] }])
         setSearchQuery("")
       })
       .catch(() => {
@@ -29,30 +31,6 @@ function App() {
       })
       .finally(() => setIsLoading(false))
   }
-
-  // teamBuilder.tsx 
-  const [team, setTeam] = useState<Pokemon[]>([])
-
-  function addToTeam(poke: Pokemon) {
-    if (team.length >= 6 ) {
-      return;
-    }
-
-    const alreadyInTeam = team.find((member) => member.name === poke.name)
-
-    if(alreadyInTeam) {
-      console.log('${poke.name} is already added');
-      return;
-    }
-
-    setTeam([...team, poke])
-  }
-
-  function removeFromTeam(poke: Pokemon){
-    setTeam(team.filter((member) => member.name !== poke.name))
-  }
-
-  // end of teamBuilder.tsx
 
   return (
     <div>
@@ -78,7 +56,7 @@ function App() {
           <button onClick={() => addToTeam(poke)}>Add to Team</button>
         </div>
       ))}
-
+      {/* Team Building Section Below */}
       <h2> Your Team </h2>
       {team.map((poke) => (
         <div key={poke.name}>
