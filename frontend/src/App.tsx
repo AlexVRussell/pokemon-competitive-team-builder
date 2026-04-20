@@ -20,7 +20,7 @@ function App() {
         return response.json()
       })
       .then(data => {
-        setSearchResults([{ name: data.name, url: data.url }])
+        setSearchResults([{ name: data.name, url: data.url, types: data.types }])
         setSearchQuery("")
       })
       .catch(() => {
@@ -83,6 +83,7 @@ function App() {
       {team.map((poke) => (
         <div key={poke.name}>
           <p>{poke.name}</p>
+          <p>{poke.types.map(t => t.type.name).join(", ")}</p>
           <button onClick={() => removeFromTeam(poke)}>Remove from Team</button>
         </div>
       ))}
