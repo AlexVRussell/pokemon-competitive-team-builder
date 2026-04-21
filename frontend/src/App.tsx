@@ -7,6 +7,7 @@ function App() {
   const [searchResults, setSearchResults] = useState<Pokemon[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [selectedPokemonName, setSelectedPokemonName] = useState<string | null>(null)
   const { team, addToTeam, removeFromTeam } = useTeam()
 
   function handleSearch(e: React.FormEvent) {
@@ -32,6 +33,8 @@ function App() {
       .finally(() => setIsLoading(false))
   }
 
+  const selectedPokemon = team.find(p => p.name === selectedPokemonName)
+
   return (
     <div>
       <h1>MetaDex - Your personal Competitive Pokemon ChatBot Coach</h1>
@@ -56,15 +59,28 @@ function App() {
           <button onClick={() => addToTeam(poke)}>Add to Team</button>
         </div>
       ))}
-      {/* Team Building Section Below */}
-      <h2> Your Team </h2>
+
+      <h2>Your Team</h2>
       {team.map((poke) => (
         <div key={poke.name}>
-          <p>{poke.name}</p>
-          <p>{poke.types.map(t => t.type.name).join(", ")}</p>
-          <button onClick={() => removeFromTeam(poke)}>Remove from Team</button>
+          <div
+            onClick={() => setSelectedPokemonName(poke.name)}
+            style={{ cursor: "pointer", border: "1px solid #ccc", width: "25%", padding: "10px", backgroundColor: selectedPokemonName === poke.name ? "#ccc" : "white" }}
+          >
+            <p>{poke.name}</p>
+            <p>{poke.types.map(t => t.type.name).join(", ")}</p>
+          </div>
+          <button onClick={() => removeFromTeam(poke)}>Remove</button>
         </div>
       ))}
+
+      {selectedPokemon && (
+        <div>
+          <h2>Customize</h2>
+          <h3>{selectedPokemon.name}</h3>
+          <button onClick={() => setSelectedPokemonName(null)}>Close</button>
+        </div>
+      )}
     </div>
   )
 }
